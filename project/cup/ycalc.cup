@@ -1,0 +1,101 @@
+package src;
+import java_cup.runtime.*;
+
+
+terminal           SEMI, PLUS, MINUS, TIMES, DIVIDE, LPAREN, RPAREN, EQ, LBRACE, RBRACE, LSHIFT,
+                   EQEQ, GT, LT, LTEQ, GTEQ, AND, OR, TYPE,
+                   IF, ELSEIF, ELSE, THEN, CONSOLE, WHILE,  DO, BEGIN,  END;
+
+terminal Integer   INUM;
+terminal Float     FNUM;
+terminal String    ID;
+terminal Boolean   BL;
+terminal char      CHAR;
+
+non terminal Object             program;
+non terminal Astat              statement, assignment, ifthen ,console , while, statement_part, assigntype;
+non terminal Lstat              statement_list;
+non terminal Aexp               expr, factor, group;
+
+
+
+
+program         ::= statement_list:s
+                    {: s.execute(); :};
+
+statement_list  ::= statement_list:l statement_part:s
+                    {: RESULT = new Lstat(l,s) ; :}
+                |   statement_part:s
+                    {: RESULT = new Lstat(s); :}
+                ;
+
+statement_part  ::= statement:s
+                    {: RESULT = s; :}
+                SEMI;
+
+statement       ::= assignment:s
+                    {: RESULT = s; :}
+                | assigntype:s
+                    {: RESULT = s; :}
+                | ifthen:s
+                    {: RESULT = s; :}
+                | console:s
+                    {: RESULT = s; :}
+                | while:s
+                    {: RESULT = s; :}
+                | BEGIN statement_list:s END
+                    {: RESULT = Astat.block(s); :}
+                ;
+
+assignment      ::= ID:i EQ expr:e
+                    {: RESULT = Astat.assignment(i,e); :}
+                ;
+
+assigntype      ::= TYPE:t ID:i EQ expr:e
+                    {: RESULT = Astat.assigntype(t.toString(),i,e); :}
+                ;
+
+
+while           ::= WHILE expr:e THEN statement:s 
+                    {: RESULT = Astat.whileloop(e,s); :}
+                ;
+
+console         ::= CONSOLE LSHIFT expr:e
+                    {: RESULT = Astat.print(e); :}
+                ;
+
+ifthen          ::= IF expr:e THEN LBRACE statement:s RBRACE
+                    {: RESULT = Astat.ifthen(e,s); :}
+                | ELSEIF expr:e THEN LBRACE statement:s RBRACE
+                    {: RESULT = Astat.ifthen(e,s); :}
+                |    IF expr:e THEN LBRACE statement:s RBRACE ELSE LBRACE statement:s2 RBRACE
+                    {:RESULT=Astat.else(e,s,s2);:};
+                ;
+
+expr            ::= expr:e PLUS group:g
+                    {: RESULT = new Aexp(new Args(e,g), sym.PLUS); :}
+                | expr:e MINUS group:g
+                    {: RESULT = new Aexp(new Args(e,g), sym.MINUS); :}
+                | group:g
+                    {: RESULT = g; :};
+
+group            ::= group:g TIMES factor:f
+                    {: RESULT = new Aexp(new Args(g,f), sym.TIMES); :}
+                | group:g DIVIDE factor:f
+                    {: RESULT = new Aexp(new Args(g,f), sym.DIVIDE); :}
+                | factor:f
+                    {: RESULT = f; :};
+
+factor          ::= LPAREN expr:e RPAREN
+                    {: RESULT = e; :}
+                | INUM:n
+                    {: RESULT = new Aexp(n); :}
+                | FNUM:f
+                    {: RESULT = new Aexp(f); :}
+                | ID:i
+                    {: RESULT = new Aexp(i); :}
+                | BL:b
+                    {: RESULT = new Aexp(b); :}
+                | CHAR:c
+                    {: RESULT = new Aexp(c); :}
+                ;

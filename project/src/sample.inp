@@ -1,0 +1,36 @@
+
+int a = 3;
+console << a - 1;
+console << a;
+
+int b = 5;
+
+
+while a =>
+begin 
+    b = b * a;
+console << b;
+    a = a - 1;
+
+end;
+
+
+c = 99;
+console << 1.9;
+
+if 1 => { console << 15.5 };
+
+elseif true => { console << 189 };
+
+//else => {console << c};
+
+
+
+
+
+
+
+
+
+
+
